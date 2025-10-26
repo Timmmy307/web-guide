@@ -1,0 +1,18 @@
+/uv.sw.js
+  Service-Worker-Allowed: /
+  Cache-Control: no-store
+
+/uv.bundle.js
+  Cache-Control: public, max-age=604800, immutable
+
+/uv.handler.js
+  Cache-Control: public, max-age=604800, immutable
+
+/uv.config.js
+  Cache-Control: public, max-age=3600
+
+/register-sw.js
+  Cache-Control: public, max-age=3600
+
+/*
+  Cache-Control: public, max-age=0, must-revalidate

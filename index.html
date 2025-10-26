@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ultraviolet</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:32px}
+    main{max-width:860px;margin:0 auto}
+    h1{margin:0 0 12px}
+    form{margin-top:20px}
+    input{width:100%;max-width:720px;padding:12px;border:1px solid #ddd;border-radius:10px}
+    .tip{color:#666;font-size:14px;margin-top:12px}
+    .warn{background:#fff3cd;color:#664d03;border:1px solid #ffecb5;padding:10px;border-radius:8px;display:none;margin:16px 0}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Ultraviolet</h1>
+  <div id="warn" class="warn">
+    <strong>Action required:</strong> Upload <code>uv.bundle.js</code> and <code>uv.handler.js</code> to this folder.
+    The service worker won't start until those files are present.
+  </div>
+  <form id="go" action="/" method="GET" autocomplete="off">
+    <input id="q" name="q" placeholder="Type a URL (auto https://) or a search (DuckDuckGo)" autofocus />
+  </form>
+  <p class="tip">Examples: <code>duckduckgo.com</code> → https added • <code>cats and dogs</code> → DuckDuckGo search</p>
+</main>
+
+<!-- Ultraviolet core (these must exist locally) -->
+<script src="/uv.bundle.js" defer></script>
+<script src="/uv.config.js" defer></script>
+<script src="/register-sw.js" defer></script>
+
+<script>
+  // Normalize input: add https:// to bare domains, else DDG search (?q=)
+  function normalizeTarget(s){
+    s = s.trim();
+    if (!s) return "";
+    if (/^https?:\/\//i.test(s)) return s;
+    if (/\./.test(s) && !/\s/.test(s)) return "https://" + s;
+    return "https://duckduckgo.com/?q=" + encodeURIComponent(s);
+  }
+
+  // On submit, encode via UV and navigate to /service/<encoded>
+  document.getElementById('go').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = document.getElementById('q').value;
+    const target = normalizeTarget(q);
+    if (!target) return;
+
+    if (window.Ultraviolet && self.__uv$config) {
+      const encoded = Ultraviolet.codec.xor.encode(target);
+      location.href = self.__uv$config.prefix + encoded;
+    } else {
+      document.getElementById('warn').style.display = 'block';
+      console.warn('Ultraviolet core not loaded yet. Make sure uv.bundle.js and uv.handler.js are uploaded.');
+    }
+  });
+
+  // Support direct /?q=... deep links
+  (function bootFromQuery(){
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q');
+    if (!q) return;
+    const target = normalizeTarget(q);
+    if (!target) return;
+    if (window.Ultraviolet && self.__uv$config) {
+      const encoded = Ultraviolet.codec.xor.encode(target);
+      location.replace(self.__uv$config.prefix + encoded);
+    }
+  })();
+</script>
+</body>
+</html>
