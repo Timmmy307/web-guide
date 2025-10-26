@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8">
+<script>
+  // Preserve the original path so client code can use it if needed:
+  sessionStorage.setItem('spa_path', location.pathname + location.search + location.hash);
+  location.replace('/');
+</script>
