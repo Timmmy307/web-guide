@@ -1,36 +1,22 @@
-# Ultraviolet Static Site
+# Ultraviolet Static Site (Query Mode)
 
-This is a minimal static deployment of **Ultraviolet** (TitaniumNetwork) suitable for GitHub + Cloudflare Pages (or any static host).
+This repo is a static Ultraviolet launcher optimized for GitHub Pages:
+- Root page handles input and builds `/?service=<encoded>`
+- After load, it hops to `/service/<encoded>` (intercepted by UV SW)
+- Includes `404.html` SPA fallback for GH Pages
 
 ## Files
-- `index.html` – launcher UI that normalizes input (auto-`https://` for bare domains; DuckDuckGo for searches).
-- `uv.config.js` – points Ultraviolet to your **Bare** backend and sets paths.
-- `uv.sw.js` – Ultraviolet service worker loader (must be at the site root).
-- `register-sw.js` – safely registers the SW once core files exist.
-- `_headers` – Cloudflare Pages headers (optional elsewhere).
+- `index.html` – input + `/?service=` logic (auto-https for domains; DuckDuckGo for searches)
+- `uv.config.js` – point `bare:` to your Cloudflare Worker URL ending with `/bare/`
+- `uv.sw.js` – Ultraviolet service worker loader (must be at site root)
+- `register-sw.js` – registers SW with `{ scope: '/' }` (HTTPS required)
+- `_headers` – Cloudflare Pages headers (SW scope + caching)
+- `404.html` – SPA redirect so deep links work on GH Pages
 
-## Required client files (add before deploying)
-> Download from the Ultraviolet project/releases and place in this folder (same level as `index.html`):
-- **`uv.bundle.js`**
-- **`uv.handler.js`**
+## Add UV core files (required)
+Drop these at the repo root next to `index.html` **before deploying**:
+- `uv.bundle.js`
+- `uv.handler.js`
 
-> The service worker will _not_ register until those two files are present (the site warns in the UI).
-
-## Configure Bare backend
-Deploy a tiny Cloudflare Worker that serves **/bare/** and put its URL into `uv.config.js`:
-
-```
-bare: 'https://YOUR-BARE-WORKER-URL/bare/'
-```
-
-A minimal Worker is included below (see project docs or the Worker file in your chat export).
-
-## Deploy to Cloudflare Pages
-- Push this folder to a GitHub repo.
-- Create a Pages project pointing at the repo.
-- Ensure `_headers` is kept; it sets `Service-Worker-Allowed: /` for `/uv.sw.js`.
-- Hard refresh once after deploy so the SW installs/activates.
-
-## Use
-- Open the site, type `duckduckgo.com` → it adds `https://` and proxies.
-- Type `cats and dogs` → it builds a DuckDuckGo search and proxies.
+## Bare backend
+Deploy a Cloudflare Worker that serves `/bare/` (minimal example in your chat). Put its URL in `uv.config.js`.

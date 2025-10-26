@@ -4,7 +4,6 @@
   if (m) {
     location.replace('/?service=' + m[1]);
   } else {
-    // keep original path in case you want to use it later
     sessionStorage.setItem('spa_path', location.pathname + location.search + location.hash);
     location.replace('/');
   }

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ultraviolet</title>
+  <meta name="description" content="Ultraviolet static launcher. Type a URL or search; routes via /?service= then /service/ for UV." />
+  <style>
+    :root{color-scheme:light dark}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:32px;background:#0f0f0f;color:#eaeaea}
+    main{max-width:860px;margin:0 auto}
+    h1{margin:0 0 12px}
+    form{margin-top:20px}
+    input{width:100%;max-width:720px;padding:12px;border:1px solid #555;border-radius:10px;background:#2c2c2c;color:#eaeaea}
+    .tip{color:#9aa0a6;font-size:14px;margin-top:12px}
+    .warn{background:#2d2410;color:#ffe08a;border:1px solid #53451f;padding:10px;border-radius:8px;display:none;margin:16px 0}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Ultraviolet</h1>
+  <div id="warn" class="warn">
+    <strong>Action required:</strong> Make sure <code>uv.bundle.js</code> and <code>uv.handler.js</code> exist at site root.
+  </div>
+
+  <form id="go" action="/" method="GET" autocomplete="off">
+    <input id="q" name="q" placeholder="Type a URL (auto https://) or a search (DuckDuckGo)" autofocus />
+  </form>
+  <p class="tip">Examples: <code>duckduckgo.com</code> → https added • <code>cats and dogs</code> → DuckDuckGo search</p>
+</main>
+
+<!-- UV core (must be present at root) -->
+<script src="/uv.bundle.js" defer></script>
+<script src="/uv.config.js" defer></script>
+<script src="/register-sw.js" defer></script>
+
+<script>
+  function normalizeTarget(s){
+    s=(s||"").trim(); if(!s) return "";
+    if(/^https?:\/\//i.test(s)) return s;
+    if(/\./.test(s) && !/\s/.test(s)) return "https://" + s;
+    return "https://duckduckgo.com/?q=" + encodeURIComponent(s);
+  }
+  document.getElementById('go').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const target = normalizeTarget(document.getElementById('q').value);
+    if (!target) return;
+    if (window.Ultraviolet && self.__uv$config && Ultraviolet.codec?.xor?.encode) {
+      const encoded = Ultraviolet.codec.xor.encode(target);
+      location.href = "/?service=" + encoded;
+    } else {
+      document.getElementById('warn').style.display = 'block';
+      console.warn("Ultraviolet core not loaded yet. Ensure uv.bundle.js and uv.handler.js exist.");
+    }
+  });
+  (function bootFromServiceParam(){
+    const sp = new URLSearchParams(location.search);
+    const svc = sp.get('service');
+    if (!svc) return;
+    function go(){
+      history.replaceState(null, '', '/'); // clean URL
+      location.replace((self.__uv$config?.prefix || '/service/') + svc);
+    }
+    go();
+  })();
+  (function bootFromQuery(){
+    const sp = new URLSearchParams(location.search);
+    const q = sp.get('q');
+    if (!q || sp.has('service')) return;
+    if (window.Ultraviolet && self.__uv$config && Ultraviolet.codec?.xor?.encode) {
+      const encoded = Ultraviolet.codec.xor.encode(normalizeTarget(q));
+      location.replace("/?service=" + encoded);
+    }
+  })();
+</script>
+<noscript>
+  <p style="color:#ffb4a9;margin-top:16px">JavaScript is required for Ultraviolet to run. Enable JS and reload.</p>
+</noscript>
+</body>
+</html>
