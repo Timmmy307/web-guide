@@ -1,6 +1,6 @@
 // Ultraviolet configuration (client + service worker)
 self.__uv$config = {
-  bare: 'https://YOUR-BARE-WORKER.workers.dev/bare/',
+  bare: 'https://sueu.gace.space/bare/',
   prefix: '/service/',
   encodeUrl: Ultraviolet.codec.xor.encode,
   decodeUrl: Ultraviolet.codec.xor.decode,
