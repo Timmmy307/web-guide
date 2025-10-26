@@ -1,6 +1,16 @@
 <!doctype html><meta charset="utf-8">
 <script>
-  // Preserve the original path so client code can use it if needed:
-  sessionStorage.setItem('spa_path', location.pathname + location.search + location.hash);
-  location.replace('/');
+  // Preserve the originally requested path/query/hash
+  // If it already contains ?service=..., keep it; otherwise keep full path
+  const loc = location.pathname + location.search + location.hash;
+  // Prefer query-mode so the root can activate SW:
+  const m = /[?&]service=([^&]+)/.exec(location.search);
+  if (m) {
+    // Already has service param — bounce to root with same param
+    location.replace('/?service=' + m[1]);
+  } else {
+    // No service param → bounce to root; your index will handle normal input
+    sessionStorage.setItem('spa_path', loc);
+    location.replace('/');
+  }
 </script>
